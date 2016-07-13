@@ -14,11 +14,33 @@
 #include "NRF24.h"
 
 NRF24::NRF24() {
-    bcm2835 = new BCM283X();
+    
 }
 
 NRF24::NRF24(const NRF24& orig) {
-    bcm2835 = new BCM283X();
+    init(cePin, csnPin);
+}
+
+NRF24::NRF24(uint8_t cePin, uint8_t csnPin) {
+    init(cePin, csnPin);
+}
+
+void NRF24::init(uint8_t cePin, uint8_t csnPin) {
+    this->bcm2835 = new BCM283X();
+    this->cePin = cePin;
+    this->csnPin = csnPin;
+    
+    this->bcm2835->beginSPI(this->csnPin);
+}
+
+uint8_t NRF24::getStatus(){
+    uint8_t statusValue=0;
+    if(this->bcm2835!=NULL){
+       statusValue=this->bcm2835->transfer(NRF24.NOP_COMMAND); //NOP=0xFF
+       this->lastStatus=statusValue;
+       this->lstStatusUpdateTime=time(NULL);
+    }
+    return statusValue;
 }
 
 NRF24::~NRF24() {
